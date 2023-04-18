@@ -10,7 +10,11 @@
                             <h5 class="card-title ">{{$product->name}}</h5>
                         </div>
                         <div class="card-body ">
-                            <p class="card-text">{{number_format($product->price,2,',')}}</p>
+                            <p class="card-text">Qty: {{$product->quantity}}</p>
+                            <p class="card-text">${{number_format($product->price,2,',')}}</p>
+
+                            <p class="card-text">Total: ${{number_format($product->quantity *$product->price,2,',') }}</p>
+
                         </div>
                     </div>
                 </div>
