@@ -23,18 +23,10 @@ class Admin extends Authenticatable implements LaratrustUser
 
     public function my_products_sold($user)
     {
-        if (auth('admin')->user()->is_super_admin) {
-            $products = Product::query()->join('user_products', 'products.id', '=', 'user_products.product_id')
-                ->where('user_products.user_id', $user->id)
-                ->get();
-        } else {
-            $products = Product::query()->join('user_products', 'products.id', '=', 'user_products.product_id')
-                ->where('user_products.user_id', $user->id)
-                ->whereIn('user_products.product_id', $this->get_auth_products_ids())
-                ->get();
-        }
-
-        return $products;
+        return Product::query()->join('user_products', 'products.id', '=', 'user_products.product_id')
+            ->where('user_products.user_id', $user->id)
+            ->whereIn('user_products.product_id', $this->products()->pluck('id')->toArray())
+            ->select('products.*', 'user_products.quantity')->get();
     }
 
     public function get_auth_products_ids()
@@ -46,6 +38,17 @@ class Admin extends Authenticatable implements LaratrustUser
         }
         return Arr::collapse($auth_products_ids);
 
+    }
+
+    public function products()
+    {
+        $products = Product::query()->join('categories', 'products.category_id', '=', 'categories.id');
+        if (!auth('admin')->user()->is_super_admin) {
+            $products = $products->clone()
+                ->join('admin_categories', 'categories.id', '=', 'admin_categories.category_id')
+                ->where('admin_categories.admin_id', auth('admin')->id());
+        }
+        return $products->select('products.*')->get()->unique('id');
     }
 
 
